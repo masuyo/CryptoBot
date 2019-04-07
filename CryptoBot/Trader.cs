@@ -25,19 +25,22 @@ namespace CryptoBot
             //_wait = new AutoResetEvent(true);
             //Console.WriteLine("derp2");
             //StartTrade();
+
             string apiUrl = Environment.GetEnvironmentVariable("ServiceUrl");
             string key = Environment.GetEnvironmentVariable("ServiceKey");
+
 
             client = new HttpClient();
             client.DefaultRequestHeaders.Add("X-Access-Token", key);
 
             GetConnectionReponse(apiUrl);
-            BuyCurrency(apiUrl,"eth", 0.1);
+            BuyCurrency(apiUrl,"BTC", 0.1);
+            GetHistory(apiUrl);
         }
 
         private static void BuyCurrency(string url, string symbol, double amount)
         {
-            string postJson = "{'symbol': 'BTC','amount':'0.01'}";
+            string postJson = "{'symbol': '" + symbol + "','amount':'0.01'}";
 
             string exchangeUrl = url + "/account/purchase";
             var result = client.PostAsync(exchangeUrl, new StringContent(postJson, Encoding.UTF8, "application/json")).Result;
@@ -48,6 +51,12 @@ namespace CryptoBot
         {
             var result = client.GetAsync(apiUrl).Result;
             _log.Info($"CONNECTION result: {result}");
+        }
+
+        private static void GetHistory(string apiUrl)
+        {
+            var result = client.GetAsync(apiUrl + "/account/history").Result;
+            _log.Info($"HISTORY result: {result}");
         }
 
         #region StartWatch
@@ -88,5 +97,6 @@ namespace CryptoBot
         }
 
         #endregion
+
     }
 }
