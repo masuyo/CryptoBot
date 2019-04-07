@@ -29,7 +29,6 @@ namespace CryptoBot
             string apiUrl = Environment.GetEnvironmentVariable("ServiceUrl");
             string key = Environment.GetEnvironmentVariable("ServiceKey");
 
-
             client = new HttpClient();
             client.DefaultRequestHeaders.Add("X-Access-Token", key);
 
@@ -59,7 +58,7 @@ namespace CryptoBot
             _log.Info($"HISTORY result: {result}");
         }
 
-        #region StartWatch
+        #region BackgroundWorker
 
         private static void StartTrade()
         {
@@ -70,9 +69,6 @@ namespace CryptoBot
             worker.RunWorkerAsync();
         }
 
-        #endregion
-
-        #region DoTrade
 
         private static void DoTrade(object sender, DoWorkEventArgs e)
         {
@@ -83,10 +79,6 @@ namespace CryptoBot
                 Console.WriteLine("derp");
             }
         }
-
-        #endregion
-
-        #region StopTrade
 
         private static void StopTrade()
         {
