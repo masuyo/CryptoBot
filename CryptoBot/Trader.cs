@@ -1,23 +1,40 @@
 using System;
 using System.ComponentModel;
+using System.Net.Http;
 using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Configuration;
 
 namespace CryptoBot
 {
     public static class Trader
     {
-        private static BackgroundWorker _worker;
-        private static AutoResetEvent _wait;
+        private static BackgroundWorker worker;
+        private static AutoResetEvent wait;
+        private static HttpClient client;
 
         [FunctionName("Trader")]
-        public static void Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, TraceWriter log)
+        public static void Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
             // TODO: Call backgroundworker
-            _wait = new AutoResetEvent(true);
-            StartTrade();
+            //_wait = new AutoResetEvent(true);
+            //Console.WriteLine("derp2");
+            //StartTrade();
+            var url = Environment.GetEnvironmentVariable("ServiceUrl");
+            var key = Environment.GetEnvironmentVariable("ServiceKey");
+
+            client = new HttpClient();
+            client.DefaultRequestHeaders.Add("X-Access-Token", key);
+            var res = client.GetAsync(url).Result;
+
+            log.Info($"result: {res}");
+        }
+
+        private static void BuyCurrency(string symbol, double amount)
+        {
+
         }
 
         #region StartWatch
@@ -25,10 +42,10 @@ namespace CryptoBot
         private static void StartTrade()
         {
             StopTrade();
-            _worker = new BackgroundWorker();
-            _worker.WorkerSupportsCancellation = true;
-            _worker.DoWork += new DoWorkEventHandler(DoTrade);
-            _worker.RunWorkerAsync();
+            worker = new BackgroundWorker();
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += new DoWorkEventHandler(DoTrade);
+            worker.RunWorkerAsync();
         }
 
         #endregion
@@ -39,7 +56,7 @@ namespace CryptoBot
         {
             while (!(sender as BackgroundWorker).CancellationPending)
             {
-                _wait.WaitOne(500);
+                wait.WaitOne(500);
                 // Call methods to do shit
                 Console.WriteLine("derp");
             }
@@ -51,9 +68,9 @@ namespace CryptoBot
 
         private static void StopTrade()
         {
-            if (_worker != null)
+            if (worker != null)
             {
-                _worker.CancelAsync();
+                worker.CancelAsync();
             }
         }
 
