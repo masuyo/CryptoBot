@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
@@ -13,28 +14,40 @@ namespace CryptoBot
         private static BackgroundWorker worker;
         private static AutoResetEvent wait;
         private static HttpClient client;
+        private static TraceWriter _log;
 
         [FunctionName("Trader")]
         public static void Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
+            _log = log;
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
             // TODO: Call backgroundworker
             //_wait = new AutoResetEvent(true);
             //Console.WriteLine("derp2");
             //StartTrade();
-            var url = Environment.GetEnvironmentVariable("ServiceUrl");
-            var key = Environment.GetEnvironmentVariable("ServiceKey");
+            string apiUrl = Environment.GetEnvironmentVariable("ServiceUrl");
+            string key = Environment.GetEnvironmentVariable("ServiceKey");
 
             client = new HttpClient();
             client.DefaultRequestHeaders.Add("X-Access-Token", key);
-            var res = client.GetAsync(url).Result;
 
-            log.Info($"result: {res}");
+            GetConnectionReponse(apiUrl);
+            BuyCurrency(apiUrl,"eth", 0.1);
         }
 
-        private static void BuyCurrency(string symbol, double amount)
+        private static void BuyCurrency(string url, string symbol, double amount)
         {
+            string postJson = "{'symbol': 'BTC','amount':'0.01'}";
 
+            string exchangeUrl = url + "/account/purchase";
+            var result = client.PostAsync(exchangeUrl, new StringContent(postJson, Encoding.UTF8, "application/json")).Result;
+            _log.Info($"BUY result: {result}");
+        }
+
+        private static void GetConnectionReponse(string apiUrl)
+        {
+            var result = client.GetAsync(apiUrl).Result;
+            _log.Info($"CONNECTION result: {result}");
         }
 
         #region StartWatch
