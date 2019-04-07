@@ -75,8 +75,7 @@ namespace CryptoBot
             while (!(sender as BackgroundWorker).CancellationPending)
             {
                 wait.WaitOne(500);
-                // Call methods to do shit
-                Console.WriteLine("derp");
+                // Call methods
             }
         }
 
